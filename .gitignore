@@ -1,0 +1,5 @@
+*/Makefile
+*.qcow2
+*.ovf
+shared/*.py*
+
