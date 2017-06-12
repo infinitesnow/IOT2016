@@ -15,4 +15,5 @@ humid=[x[2] for x in acq]
 import matplotlib.pyplot as p
 
 p.plot(timeaxis, temp, 'r', timeaxis, humid, 'b')
-p.savefig(sys.argv[1]+".png")
+filename=sys.argv[1].replace(".csv","")
+p.savefig("../latex/images/"+filename+".png")
