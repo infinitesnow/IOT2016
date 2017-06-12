@@ -2,4 +2,4 @@
 *.qcow2
 *.ovf
 shared/*.py*
-
+*.swp
