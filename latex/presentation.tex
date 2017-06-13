@@ -37,10 +37,10 @@ To read from the serial port, I tried to manually create a script using Python's
 The relevant part of our payload are three \texttt{uint16} sensor readings. Here is the relevant part of the parsing done with Python's \texttt{Serial} module.
 
 \begin{lstlisting}
-data_array=struct.unpack_from('>BHHBBBHHHHHB',data_raw)
+data_array=struct.unpack_from('>BBBHHBBBHHHHB',data_raw)
 \end{lstlisting}
 
-The first byte (\texttt{B}) is always a \texttt{\~} (\texttt{0x7E}), like the last one. Then we have the header, with two \texttt{unsigned int} for the destination and source address and three \texttt{byte}s for the message length, group ID, and Active Message handler type. The next three \texttt{unsigned int} are our payload, followed by two \texttt{unsigned int} for the footer and a terminator \texttt{byte}.
+The first byte (\texttt{B}) is always a \texttt{\~} (\texttt{0x7E}), like the last one, and two other \texttt{byte}s. Then we have the header, with two \texttt{unsigned int} for the destination and source address and three \texttt{byte}s for the message length, group ID, and Active Message handler type. The next three \texttt{unsigned int} are our payload, followed by an \texttt{unsigned int} for the footer and a terminator \texttt{byte}.
 
 \section{Sensor calibration}
 The sensors I needed to use were a Sensirion SHT11, which provides humidity and temperature readings, and a Humamatsu S1870, which provides visible light intensity. 

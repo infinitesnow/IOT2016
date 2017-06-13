@@ -30,8 +30,8 @@ while(True):
 		print("Package too small, continuing...", file=sys.stderr)
 		continue
 	try:
-		data_array=struct.unpack_from('>BHHBBBHHHHHB',data_raw)
-		if data_array[0]!=0x7e or data_array[11]!=0x7e:
+		data_array=struct.unpack_from('>BBBHHBBBHHHHB',data_raw)
+		if data_array[0]!=0x7e or data_array[12]!=0x7e:
 			print("Package invalid, flushing...", file=sys.stderr)
 			flush()
 			continue
@@ -39,11 +39,11 @@ while(True):
 		print("Failed to parse, continuing...", file=sys.stderr)
 		continue
 	
-	data["temperature"] = d1 + d2*data_array[7]
-	data["humidity"] = c1 + c2*data_array[8] + c3*pow(data_array[8],2)
+	data["temperature"] = d1 + d2*data_array[8]
+	data["humidity"] = c1 + c2*data_array[9] + c3*pow(data_array[9],2)
 	
 	# Compute the raw voltage on the photodiode
-	luxv=float(data_array[9])
+	luxv=float(data_array[10])
 	luxvsensor = (luxv/4096)*1.5
 	# Compute the current through 100kOhm resistor
 	luxi = luxvsensor/100000
