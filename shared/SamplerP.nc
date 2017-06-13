@@ -22,8 +22,6 @@ implementation
   {
     // entry points to the message payload
     entry = call AMSend.getPayload(&msg, sizeof(Entry));
-    // Initialize counter
-    entry->counter = 0;
     call Leds.led1Off();
     // Power on serial output controller. startDone event 
     // will start the timer once the controller is ready 
@@ -71,7 +69,6 @@ implementation
   
   event void Timer.fired()
   {
-    entry->counter++;
     sensor_no = 0;
     call Leds.led1On();
     post sample();   // Samples the first sensor

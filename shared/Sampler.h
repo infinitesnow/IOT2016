@@ -7,7 +7,6 @@
 uint32_t SAMPLE_INTERVAL = 5*1024U; // How often to sample sensors
 
 typedef nx_struct Entry {
-  nx_uint32_t counter;
   nx_uint16_t values[uniqueCount(UQ_SAMPLER)];
 } Entry;
 

@@ -6,14 +6,16 @@ import sys
 with open(sys.argv[1],'r') as input:
     acq=list(csv.reader(input))
 
-acq=[ [int(row[0]),float(row[1]),float(row[2])] for row in acq] 
+acq=[ [float(row[0]),float(row[1])] for row in acq] 
 
-timeaxis=[x[0] for x in acq]
-temp=[x[1] for x in acq]
-humid=[x[2] for x in acq]
+timeaxis=range(len(acq))
+temp=[x[0] for x in acq]
+humid=[x[1] for x in acq]
 
 import matplotlib.pyplot as p
 
-p.plot(timeaxis, temp, 'r', timeaxis, humid, 'b')
+_,axis=p.subplots(2, sharex=True)
+axis[0].plot(timeaxis, temp, 'r')
+axis[1].plot(timeaxis, humid, 'b')
 filename=sys.argv[1].replace(".csv","")
 p.savefig("../latex/images/"+filename+".png")
