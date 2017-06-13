@@ -30,8 +30,8 @@ while(True):
 		print("Package too small, continuing...", file=sys.stderr)
 		continue
 	try:
-		data_array=struct.unpack_from('>BBBHHBHHHHBBB',data_raw)
-		if data_array[0]!=0x7e or data_array[12]!=0x7e:
+		data_array=struct.unpack_from('>BHHBBBHHHHHB',data_raw)
+		if data_array[0]!=0x7e or data_array[11]!=0x7e:
 			print("Package invalid, flushing...", file=sys.stderr)
 			flush()
 			continue
