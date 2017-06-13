@@ -11,9 +11,11 @@ implementation
     SamplerP;
 
   components new SensirionSht11C() as TempAndHumid;
+  components new HamamatsuS1087ParC() as Photo;
 
   SamplerP.Read[unique(UQ_SAMPLER)] -> TempAndHumid.Temperature;
   SamplerP.Read[unique(UQ_SAMPLER)] -> TempAndHumid.Humidity;
+  SamplerP.Read[unique(UQ_SAMPLER)] -> Photo;
   SamplerP.Boot -> MainC;
   SamplerP.Timer -> Timer;
   SamplerP.Leds -> LedsC;
