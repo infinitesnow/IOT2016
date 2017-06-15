@@ -98,9 +98,34 @@ $$\text{light intensity} = 0.625\cdot10^6 \cdot I \cdot 1000$$
 
 We are now going to plot some data acquired from the TelosB board.
 
+In Figure \ref{fig:lamp} we see a test plot made on the evening of June 13th. We can see the effect of turning a light bulb lamp on, shedding light directly on the sensor. We see light intensity peaking, temperature rising and humidity dropping.
+
+
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{lamp}
-\caption{This is a test plot done on the evening of June 13th. We can see the effect of turning a light bulb lamp on, shedding light directly on the sensor. We see light intensity peaking, temperature rising and humidity dropping.}
+\caption{Lamp activation pattern}
+\label{fig:lamp}
 \end{figure}
+
+Figure \ref{fig:june14} is the plot of June 14th activity for the whole day. We see clearly the lamp activation pattern twice. Also, it started raining around 6PM, and we can see humidity rising up heavily while temperature drops a little.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{log-20170514}
+\caption{June 14th data}
+\label{fig:june14}
+\end{figure}
+
+Figure \ref{fig:june14light} shows the plot for the light intensity on June 14th, with the $y$ axis limit set to show the data shadowed by the lamp activation. We see that the light stopped rising around noon, when the sky got cloudy. 
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{log-20170514-light}
+\caption{June 14th detail}
+\label{fig:june14light}
+\end{figure}
+
+\section{Forwarding report via mail}
+What I did then was to create a report from the data, which are logged in a \texttt{.csv} file; this is read once a day, parsed, and from it are computed the max, min, and average of the sampled data sources. For the light, considering the lamp pattern, I decided to add a trimmed average, which excludes from this average samples which are more than $3\sigma$ far from the common average. 
+
+Due to the limited hardware resources of the Raspberry Pi, computing these stats is quite computationally intensive. Being the machine single core/single thread, and being the Python sampler spawned in another process, when it's computing the stats the flow is halted, and some packages are stuck in the reading queue and are read in one single shot, causing the JSON parser to thow an exception. This exception is caught and handled with a splitter. Notice that another JSON parser is used, so that further exceptions are not caught. This looks safer, although it introduces a run condition for which a sample may be posted in between the ones stuck in the queue, thus altering the order. This may swap at most 2 packets/day, so its impact is negligible.
 
 \end{document}
