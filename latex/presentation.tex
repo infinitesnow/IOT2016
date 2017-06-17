@@ -23,13 +23,13 @@ The aim of this project was to program a TelosB hardware to collect temperature 
 I decided to use my Raspberry Pi as a gateway. TelosB was connected over the USB port, and configured to broadcast its output over the serial port. \texttt{node-red} was configured to publish to two online services: Thingspeak (shown in Figure \ref{fig:thingspeak}) and PubNub. From the PubNub channel, I created a Freeboard dashboard to visualize the broadcasted data, as seen in Figure \ref{fig:freeboard}. \texttt{node-red} was configured to send me and a family member a daily report with minimum, maximum and average for each acquired signal for the previous day. All data have been logged into CSV files, which allowed me to plot the data using \texttt{matplotlib}.
 
 \begin{figure}
-%\includegraphics[width=\textwidth]{thingspeak}
+\includegraphics[width=\textwidth]{thingspeak}
 \caption{Thingspeak channel}
 \label{fig:thingspeak}
 \end{figure}
 
 \begin{figure}
-%\includegraphics[width=\textwidth]{freeboard}
+\includegraphics[width=\textwidth]{freeboard}
 \caption{Freeboard.io dashboard}
 \label{fig:freeboard}
 \end{figure}
@@ -107,24 +107,43 @@ In Figure \ref{fig:lamp} we see a test plot made on the evening of June 13th. We
 \label{fig:lamp}
 \end{figure}
 
-Figure \ref{fig:june14} is the plot of June 14th activity for the whole day. We see clearly the lamp activation pattern twice. Also, it started raining around 6PM, and we can see humidity rising up heavily while temperature drops a little.
+Figure \ref{fig:june14} is the plot of June 14$^{th}$ activity for the whole day. We see clearly the lamp activation pattern twice. Also, it started raining around 6PM, and we can see humidity rising up heavily while temperature drops a little.
 
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{log-20170514}
-\caption{June 14th data}
+\caption{June 14$^{th}$ data}
 \label{fig:june14}
 \end{figure}
 
-Figure \ref{fig:june14light} shows the plot for the light intensity on June 14th, with the $y$ axis limit set to show the data shadowed by the lamp activation. We see that the light stopped rising around noon, when the sky got cloudy. 
+Figure \ref{fig:june14light} shows the plot for the light intensity on June 14$^{th}$, with the $y$ axis limit set to show the data shadowed by the lamp activation. We see that the light stopped rising around noon, when the sky got cloudy. 
 
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{log-20170514-light}
-\caption{June 14th detail}
+\caption{June 14$^{th}$ light intensity plot, with limit on $y$ axis set to 150 lux}
 \label{fig:june14light}
 \end{figure}
 
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{log-20170515}
+\caption{June 15$^{th}$ data}
+\label{fig:june15}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{log-20170516}
+\caption{June 16$^{th}$ data}
+\label{fig:june16}
+\end{figure}
+
 \section{Forwarding report via mail}
-What I did then was to create a report from the data, which are logged in a \texttt{.csv} file; this is read once a day, parsed, and from it are computed the max, min, and average of the sampled data sources. For the light, considering the lamp pattern, I decided to add a trimmed average, which excludes from this average samples which are more than $3\sigma$ far from the common average. 
+What I did then was to create a report from the data, which are logged in a \texttt{.csv} file; this is read once a day, parsed, and from it are computed the max, min, and average of the sampled data sources. For the light, considering the lamp pattern, I decided to add a trimmed average, which excludes from this average samples which are more than $3\sigma$ far from the common average.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{summary}
+\caption{Screenshot of the mail received on June 17$^{th}$, with June 16$^{th}$ data}
+\label{fig:june16}
+\end{figure}
 
 Due to the limited hardware resources of the Raspberry Pi, computing these stats is quite computationally intensive. Being the machine single core/single thread, and being the Python sampler spawned in another process, when it's computing the stats the flow is halted, and some packages are stuck in the reading queue and are read in one single shot, causing the JSON parser to thow an exception. This exception is caught and handled with a splitter. Notice that another JSON parser is used, so that further exceptions are not caught. This looks safer, although it introduces a run condition for which a sample may be posted in between the ones stuck in the queue, thus altering the order. This may swap at most 2 packets/day, so its impact is negligible.
 
