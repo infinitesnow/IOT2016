@@ -11,16 +11,24 @@
 \usepackage{textcomp}
 \usepackage{multirow}
 \usepackage{makecell}
+\usepackage{wrapfig}
 \graphicspath{{images/}}
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
-The aim of this project was to program a TelosB hardware to collect temperature and humidity data from the environment, and broadcast them over the internet, using Node-Red, and analyze them and send the stats via mail. All the code used is available in \href{https://github.com/infinitesnow/IOT2016}{this repository} on GitHub.
+The aim of this project was to program a TelosB hardware to collect temperature and humidity data from the environment, broadcast them over the internet using \texttt{node-red}, analyze them and send the stats via mail. All the code used is available in \href{https://github.com/infinitesnow/IOT2016}{this repository} on GitHub.
 
 \section{Chosen architecture}
-I decided to use my Raspberry Pi as a gateway. TelosB was connected over the USB port, and configured to broadcast its output over the serial port. \texttt{node-red} was configured to publish to two online services: Thingspeak (shown in Figure \ref{fig:thingspeak}) and PubNub. From the PubNub channel, I created a Freeboard dashboard to visualize the broadcasted data, as seen in Figure \ref{fig:freeboard}. \texttt{node-red} was configured to send me and a family member a daily report with minimum, maximum and average for each acquired signal for the previous day. All data have been logged into CSV files, which allowed me to plot the data using \texttt{matplotlib}.
+
+\begin{wrapfigure}{r}{0.3\textwidth}
+\includegraphics[width=0.28\textwidth]{setup}
+\caption{My setup}
+\label{fig:setup}
+\end{wrapfigure}
+
+My setup is shown in Figure \ref{fig:setup}. I decided to use my Raspberry Pi as a gateway. TelosB was connected via USB, and configured to broadcast its output over the serial port. \texttt{node-red} was configured to publish to two online services: Thingspeak (shown in Figure \ref{fig:thingspeak}) and PubNub. From the PubNub channel, I created a Freeboard dashboard to visualize the broadcasted data, as seen in Figure \ref{fig:freeboard}. \texttt{node-red} was configured to send me and a family member a daily report with minimum, maximum and average for each acquired signal in the previous day. All data have been logged into CSV files, which allowed me to plot the data using \texttt{matplotlib}.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{thingspeak}
@@ -35,15 +43,15 @@ I decided to use my Raspberry Pi as a gateway. TelosB was connected over the USB
 \end{figure}
 
 \section{Reading the serial port}
-To read from the serial port, I tried to manually create a script using Python's \texttt{Serial} module, which read chunks of 21 bytes from the input. This worked, but it caused unexpected readings. Splitting on the \texttt{0x7E} flag byte, which is what the TinyOS library provided in \texttt{tinyos.py} file does, seemed to solve the problem. I switched to \texttt{node-red-node-serialport}, which makes this easy to do and integrates cleanly with \texttt{node-red}. But I still had problems, because when a reading had, usually in its least significant byte, the value of the flag byte, the packet got prematurely truncated and the readings went off scale. So, I modified the Python script adding checks on the packet header and footer to ensure correct aligning, and fixed the packet length.  
+To read from the serial port, I tried to manually create a script using Python's \texttt{Serial} module, which read chunks of 21 bytes from the input. This didn't work well, since it caused unexpected readings. Splitting on the \texttt{0x7E} flag byte, which is what the TinyOS library provided in \texttt{tinyos.py} file does, seemed to solve the problem. I switched to \texttt{node-red-node-serialport}, which makes this easy to do and integrates cleanly with \texttt{node-red}. But I still had problems, because when a reading had, usually in its least significant byte, the value of the flag byte, the packet got prematurely truncated and the readings went off scale. So, I modified the Python script adding checks on the packet header and footer to ensure correct aligning, and fixed the reading length.  
  
-The relevant part of our payload are three \texttt{uint16} sensor readings. Here is the relevant part of the parsing done with Python's \texttt{Serial} module.
+Our payload is composed by three \texttt{uint16} sensor readings. Here is the relevant part of the parsing done with Python's \texttt{Serial} module:
 
 \begin{lstlisting}
 data_array=struct.unpack_from('>BBBHHBBBHHHHB',data_raw)
 \end{lstlisting}
 
-\texttt{>} tells Python that TelosB has big-endian byte order. The first byte (\texttt{B}) is always a \texttt{\texttildelow} (\texttt{0x7E}), and so is the last one. We have another \texttt{byte} for the serial packet header (\texttt{0x45}). Then we have the header, with two \texttt{unsigned int}s (\texttt{H}) for the destination and source address, and three \texttt{byte}s for the message length, group ID, and Active Message handler type. The next three \texttt{unsigned int} are our payload, followed by an \texttt{unsigned int} for the footer and a terminator \texttt{byte}.
+This is described in Table \ref{tab:packet}. \texttt{>} tells Python that TelosB has big-endian byte order. The first byte (\texttt{B}) is always a \texttt{\texttildelow} (\texttt{0x7E}), and so is the last one. We have another \texttt{byte} for the serial packet header (\texttt{0x45}). Then we have the AM Package header, with a \texttt{0x00} \texttt{byte}, which tells us that this is in fact an AM Package, two \texttt{unsigned int}s (\texttt{H}) for the destination and source address, and three \texttt{byte}s for the message length, group ID, and Active Message handler type. The next three \texttt{unsigned int} are our payload, followed by an \texttt{unsigned int} for the footer and a terminator \texttt{byte}.
 
 \begin{table}[h]
 \centering
@@ -65,6 +73,8 @@ data_array=struct.unpack_from('>BBBHHBBBHHHHB',data_raw)
 \texttt{0x7E}	& \texttt{\texttildelow}				& \makecell{Serial package\\terminator}				\\ \hline
 \end{tabular}
 
+\caption{Serial packet structure}
+\label{tab:packet}
 \end{table}
 
 \section{Sensor calibration}
@@ -98,7 +108,7 @@ $$\text{light intensity} = 0.625\cdot10^6 \cdot I \cdot 1000$$
 
 We are now going to plot some data acquired from the TelosB board.
 
-In Figure \ref{fig:lamp} we see a test plot made on the evening of June 13th. We can see the effect of turning a light bulb lamp on, shedding light directly on the sensor. We see light intensity peaking, temperature rising and humidity dropping.
+In Figure \ref{fig:lamp} we see a test plot made on the evening of June 13$^{th}$. We can see the effect of turning a light bulb lamp on, shedding light directly on the sensor. We see light intensity peaking, temperature rising and humidity dropping.
 
 
 \begin{figure}[h]
@@ -123,6 +133,8 @@ Figure \ref{fig:june14light} shows the plot for the light intensity on June 14$^
 \label{fig:june14light}
 \end{figure}
 
+Figure \ref{fig:june15} and Figure \ref{fig:june16} show data for June 15$^{th}$ and June 16$^{th}$.
+
 
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{log-20170515}
@@ -137,14 +149,16 @@ Figure \ref{fig:june14light} shows the plot for the light intensity on June 14$^
 \end{figure}
 
 \section{Forwarding report via mail}
-What I did then was to create a report from the data, which are logged in a \texttt{.csv} file; this is read once a day, parsed, and from it are computed the max, min, and average of the sampled data sources. For the light, considering the lamp pattern, I decided to add a trimmed average, which excludes from this average samples which are more than $3\sigma$ far from the common average.
+What I did then was to create a report from the data, which are logged in a \texttt{.csv} file; this is read once a day, parsed, and from it are computed the max, min, and average of the sampled data sources. For the light, considering the lamp pattern, I decided to add a trimmed average, which excludes from this average samples which are more than $3\sigma$ far from the common average. The report is then sent by mail at 13:00 PM.
 
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{summary}
 \caption{Screenshot of the mail received on June 17$^{th}$, with June 16$^{th}$ data}
-\label{fig:june16}
+\label{fig:summary}
 \end{figure}
 
-Due to the limited hardware resources of the Raspberry Pi, computing these stats is quite computationally intensive. Being the machine single core/single thread, and being the Python sampler spawned in another process, when it's computing the stats the flow is halted, and some packages are stuck in the reading queue and are read in one single shot, causing the JSON parser to thow an exception. This exception is caught and handled with a splitter. Notice that another JSON parser is used, so that further exceptions are not caught. This looks safer, although it introduces a run condition for which a sample may be posted in between the ones stuck in the queue, thus altering the order. This may swap at most 2 packets/day, so its impact is negligible.
+Due to the limited hardware resources of the Raspberry Pi, computing these stats is quite computationally intensive. Being the machine single core/single thread, and being the Python sampler spawned in another process, when it's computing the stats the flow is halted, some packages are stuck in the reading queue and are read in one single shot, causing the JSON parser to thow an exception. This exception is caught and handled with a splitter. Notice that another JSON parser is used, so that further exceptions are not caught. This looks safer, although it introduces a run condition for which a sample may be posted in between the ones stuck in the queue, thus altering the order. This may swap at most 2 packets/day, so its impact is negligible.
+
+In Figure \ref{fig:summary} is shown an example of a received mail report.
 
 \end{document}
